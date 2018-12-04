@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html><body style = "margin: 0">
+	<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
+		<div style="float: left"><a href="/">HOME</a> | <a href="/stat">STATISTICS</a></div>
+		<div style="float: right"> <a href="/register">REGISTER</a> | <a href="login">LOG IN</a></div>	
+		</div>
+
+  
+   <div style = "background-color:#EB9A84; width: 100%; padding-bottom: 100vh">
+ 
+<br>      
+
+<center><h2>REGISTER</h2></center>
+
+{{#if message}}
+<div style="background-color: red; width: 100%; padding-bottom: 2.vh;">
+<div class="error"><center>{{ message }}</center></div>
+</div>
+{{/if}}
+
+
+
+<form action="login" method="POST">
+<div><center><label for="username">Username: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label> <input name="username" type="text" value="" /></center></div><br>
+  
+<div><center><label for="password">Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label> <input name="password1" type="password" value="" /></center></div> <br>
+  
+<div><center><label for="password">Confirm Password: &nbsp;</label> <input name="password2" type="password" value="" /></center></div> <br>
+<div><center><input type="submit" value="Register" /></center></div>
+</form>
+</div></body></html>
