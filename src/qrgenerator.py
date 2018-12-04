@@ -13,4 +13,5 @@ gencode = ''
 for i in range(n):
     gencode = gencode + random.choice(clist)
 img = qrcode.make(gencode) # img is a png image
+print("The code is: " + gencode)
 img.show()
