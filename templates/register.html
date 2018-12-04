@@ -12,12 +12,11 @@
 
 <center><h2>REGISTER</h2></center>
 
-{{#if message}}
+{% if message %}
 <div style="background-color: red; width: 100%; padding-bottom: 2.vh;">
 <div class="error"><center>{{ message }}</center></div>
 </div>
-{{/if}}
-
+{% endif %}
 
 
 <form action="login" method="POST">
