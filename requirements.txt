@@ -1,0 +1,7 @@
+Flask
+requests
+geocoder
+qrcode
+config
+flask_pymongo
+pymongo

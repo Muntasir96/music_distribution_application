@@ -1,5 +1,5 @@
 from flask import *
-from config import DB, secret_key, mongo
+from config import DB, secret_key
 # from flask_pymongo import PyMongo
 import pymongo
 from json import *
@@ -9,7 +9,7 @@ app = Flask(__name__)
 # app.config['MONGO_URI'] = 'mongodb+srv://largescale:largescaleproject@largescale-ushui.mongodb.net/test?retryWrites=true'
 # app.config['MONGO_DBNAME'] = 'music_distribution'
 # mongo = PyMongo(app)
-mongo = pymongo.MongoClient(mongo, maxPoolSize=50, connect=False)
+# mongo = pymongo.MongoClient(mongo, maxPoolSize=50, connect=False)
 
 # db = pymongo.database.Database(mongo, 'largescale')
 # col = pymongo.collection.Collection(db, 'music_distribution')
@@ -44,15 +44,15 @@ def user():
 def stat():
     return render_template("stat.html")
 
-@app.route('/uploads/<path:filename>')
-def upload_file(filename):
-    return mongo.send_file(filename)
+# @app.route('/uploads/<path:filename>')
+# def upload_file(filename):
+#     return mongo.send_file(filename)
 
-@app.route('/add_user')
-def add_user():
-    user = mongo.db.users
-    user.insert({'name': 'Anthony'})
-    return 'Added User!'
+# @app.route('/add_user')
+# def add_user():
+#     user = mongo.db.users
+#     user.insert({'name': 'Anthony'})
+#     return 'Added User!'
 
 
 if __name__ == '__main__':
