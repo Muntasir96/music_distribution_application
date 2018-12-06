@@ -5,3 +5,4 @@ qrcode
 config
 flask_pymongo
 pymongo
+dnspython

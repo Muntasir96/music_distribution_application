@@ -1,14 +1,14 @@
-from flask import *
-from config import DB, secret_key
-# from flask_pymongo import PyMongo
+from flask import Flask, jsonify, request, render_template
+from flask_pymongo import PyMongo
 import pymongo
 from json import *
+from config import uri
 
 app = Flask(__name__)
 # app.config['SECRET_KEY'] = secret_key
-# app.config['MONGO_URI'] = 'mongodb+srv://largescale:largescaleproject@largescale-ushui.mongodb.net/test?retryWrites=true'
-# app.config['MONGO_DBNAME'] = 'music_distribution'
-# mongo = PyMongo(app)
+app.config['MONGO_DBNAME'] = 'largescale'
+app.config['MONGO_URI'] = uri
+mongo = PyMongo(app)
 # mongo = pymongo.MongoClient(mongo, maxPoolSize=50, connect=False)
 
 # db = pymongo.database.Database(mongo, 'largescale')
@@ -44,16 +44,13 @@ def user():
 def stat():
     return render_template("stat.html")
 
-# @app.route('/uploads/<path:filename>')
-# def upload_file(filename):
-#     return mongo.send_file(filename)
-
-# @app.route('/add_user')
-# def add_user():
-#     user = mongo.db.users
-#     user.insert({'name': 'Anthony'})
-#     return 'Added User!'
-
+@app.route('/mongo', methods=['GET'])
+def mongo_test():
+    output = []
+    for f in mongo.db.song.find():
+        f.pop('_id')
+        output.append(f)
+    return jsonify({'result' : output})
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)
