@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html><body style = "margin: 0">
-	<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
+{% if username %}
+		<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
+		<div style="float: left"><a href="/">HOME</a> | <a href="/stat">STATISTICS</a></div>
+		<div style="float: right"> Logged in as {{username}} </a> | <a href="/logout">LOG OUT</a></div>	
+		</div>
+{% else %}
+		<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
 		<div style="float: left"><a href="/">HOME</a> | <a href="/stat">STATISTICS</a></div>
 		<div style="float: right"> <a href="/register">REGISTER</a> | <a href="/login">LOG IN</a></div>	
 		</div>
-
+{% endif %}
   
    <div style = "background-color:#EB9A84; width: 100%; padding-bottom: 100vh">
  
@@ -20,11 +26,11 @@
 
 
 <form action="register" method="POST">
-<div><center><label for="username">Username: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label> <input name="username" type="text" value="option" /></center></div><br>
+<div><center><label for="username">Username: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </label> <input name="username" type="text" value="" /></center></div><br>
   
-<div><center><label for="password">Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label> <input name="password" type="password" value="option" /></center></div> <br>
+<div><center><label for="password">Password:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</label> <input name="password" type="password" value="" /></center></div> <br>
   
-<div><center><label for="password">Confirm Password: &nbsp;</label> <input name="password" type="password" value="register" /></center></div> <br>
+<div><center><label for="password">Confirm Password: &nbsp;</label> <input name="password2" type="password" value="" /></center></div> <br>
 <div><center><input type="submit" value="Register" /></center></div>
 </form>
 </div></body></html>

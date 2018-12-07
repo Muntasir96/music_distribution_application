@@ -2,26 +2,48 @@
 
 
 <html><body style = "margin: 0">
-	<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 2.33vh">
+{% if username %}
+		<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
+		<div style="float: left"><a href="/">HOME</a> | <a href="/stat">STATISTICS</a></div>
+		<div style="float: right"> Logged in as {{username}} </a> | <a href="/logout">LOG OUT</a></div>	
+		</div>
+{% else %}
+		<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
 		<div style="float: left"><a href="/">HOME</a> | <a href="/stat">STATISTICS</a></div>
 		<div style="float: right"> <a href="/register">REGISTER</a> | <a href="/login">LOG IN</a></div>	
 		</div>
-
+{% endif %}
   
    <div style = "background-color:#EB9A84; width: 100%; padding-bottom: 100vh">
-<br>       
+<br>   
+
+{% if message %}
+<div style="background-color: red; width: 100%; padding-bottom: 2.vh;">
+<div class="error"><center>{{ message }}</center></div>
+</div>
+{% endif %}
+
+{% if song %}
+    <center>The song is : {{song['title']}} by {{song['artist']}}</center>
+    <center><a href='/downloadfile/{{song.filename}}'>CLICK TO DOWNLOAD</a></center>
+    <br>
+{% endif %}
+
 
 <center><h2>DOWNLOAD SONG</h2></center>
      <center>Step 1: Use a QR Reader App on QR Code </center>
      <center>Step 2: Phone will show a 4 digit code </center>
      <center>Step 3: Enter 4 digit code below  </center>
+    <center>Step 4: Click on the Find Button  </center>
+    <center>Step 5: Click on the Download link  </center>
+
 <br>
 
 <form action="download" method="POST">
-<div><center><label for="username">Code: </label> <input name="username" type="text" value="" maxlength="4" /></center></div><br>
+<div><center><label for="username">Code: </label> <input name="code" type="text" value="" maxlength="4" /></center></div><br>
   
-
-
-<div><center><input type="submit" value="Download" /></center></div>
+<div><center><input type="submit" value="Find" /></center></div>
 </form>
+
+
 </div></body></html>
