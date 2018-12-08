@@ -1,0 +1,26 @@
+version: '3'
+services:
+  web:
+    build: .
+    depends_on:
+      - mongo
+    command: python -u app.py
+    ports: 
+      - "8080:8080"
+    volumes:
+      - .:/Library
+      - .:/Users
+      - .:/Songs
+    links:
+      - mongo
+  mongo:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: largescaleproject
+    volumes:
+      - ./data/db
+    ports:
+      - 27017:27017
+    command: mongod

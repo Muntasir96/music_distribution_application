@@ -4,7 +4,6 @@ from flask_pymongo import PyMongo
 import pymongo
 from pymongo import MongoClient
 from json import *
-from config import uri
 import hashlib
 import pprint
 import ssl
@@ -18,7 +17,7 @@ import geocoder
 
 app = Flask(__name__)
 app.config['MONGO_DBNAME'] = 'largescale'
-app.config['MONGO_URI'] = uri
+app.config['MONGO_URI'] = 'mongodb://mongodb:27017/'
 mongo = PyMongo(app)
 
 
@@ -37,7 +36,6 @@ def home_page():
         return render_template("home.html")
     else:
         return render_template("home.html", username = session["username"])
-
 
 @app.route('/download', methods = ['GET', 'POST'])
 def download():
@@ -88,6 +86,7 @@ def login():
                 return render_template("login.html", message = "Username does not exist!")
         else:
             return render_template("login.html")
+
 @app.route('/register', methods = ['GET', 'POST'])
 def register():
         if request.method == "POST":
@@ -119,10 +118,10 @@ def upload():
             artist = request.form['artist']
             music = request.files['file']
             filename = request.files['file'].filename
-            print(music)
-            print(type(music))
-            print(music.name)
-            print(filename)
+            # print(music)
+            # print(type(music))
+            # print(music.name)
+            # print(filename)
             clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
             n = 4
             gencode = ''
@@ -145,7 +144,6 @@ def upload():
         else:
             return render_template("upload.html", username = session["username"])
 
-
 @app.route('/downloadfile/<code>')
 def downloadfile(code):
     song = {}
@@ -166,8 +164,6 @@ def downloadfile(code):
     songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
-    
-
 
 @app.route('/user')
 def user():
@@ -199,14 +195,14 @@ def statc(code):
         else:
             return render_template("home.html", message = "Illegal Access!", username = session["username"])
 
-
-@app.route('/mongo', methods=['GET'])
-def mongo_test():
-    output = []
-    for f in mongo.db.song.find():
-        f.pop('_id')
-        output.append(f)
-    return jsonify({'result' : output})
+# @app.route('/mongo', methods=['GET'])
+# def mongo_test():
+#     output = []
+#     for f in mongo.db.song.find():
+#         f.pop('_id')
+#         output.append(f)
+#     mongo.db.users.insert({'hi':'hi'})
+#     return jsonify({'result' : output})
 
 @app.route('/logout')
 def logout_redirect():
@@ -216,5 +212,3 @@ def logout_redirect():
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=8080, debug=True)
-
-
