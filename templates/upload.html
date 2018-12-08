@@ -23,12 +23,14 @@
 {% endif %}
 
 {% if image %}
-    <img src={{image}} alt="QR Code">
+	<br><br>
+    <center><img src={{image}} alt="QR Code" width="500" height="500" ></center>
 {% else %}
 <center><h2>UPLOAD SONG</h2></center>
-     <center>Step 1: Fill in information below</center>
-     <center>Step 2: Click Upload to show a QR Code </center>
-     <center>Step 3: Print copies of QR Code and distribute to users </center>
+     <center>Step 1: Log in</center>
+     <center>Step 2: Fill in the information below</center>
+     <center>Step 3: Click Upload to show a QR Code </center>
+     <center>Step 4: Print copies of QR Code and distribute to users </center>
 <br>
 
 <form action="upload" method="POST" enctype = "multipart/form-data">

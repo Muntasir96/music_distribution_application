@@ -4,4 +4,5 @@ import geocoder
 # python3 geo.py
 
 g = geocoder.ip('me')
-print(g.latlng)
+x = "Latitude: " + str(g.latlng[0]) + " Longitutde: " + str(g.latlng[1])
+print(x)

@@ -7,25 +7,54 @@
 <body style="margin: 0">
 	<div style="background-color: #CBDCFC; width: 100%; padding-bottom: 3vh" id='header'>
 		<div style="float: left">
-			<a href="/home">HOME</a>
+			<a href="/">HOME</a>
 		</div>
 	</div>
 	<div style="background-color: #EB9A84; width: 100%; padding-bottom: 100vh" id="body">
 		<br>
 		<center><h1>Statistics Page</h1></center>
 		<br>
-		<div id="data-table">
-			<center>
-				<h2>Data Table</h2>
-				<h4>Items appear as Follows</h4>
-				<ul id="format">
-					<li>Title</li>
-					<li>Artist</li>
-					<li>Download</li>
-				</ul>
-			</center><
-			<ul id="songs"></ul>
-		</div>
+		{% if list %}
+				<center><h2>Data Table</h2></center>
+				<table style="width:100%">
+					<tr>
+    				<th>Title</th>
+    				<th>Artist</th> 
+    				<th>Number of download(s)</th>
+					<th> Date and Time Uploaded </th>
+					<th> 4 DIGIT CODE </th>
+  					</tr>
+			{% for song in list%}
+				<tr>
+    				<th>{{song['title']}}</th>
+    				<th>{{song['artist']}}</th> 
+    				<th> <a href="/stat/{{song['code']}}">{{song['downloads']}}</a> </th>
+					<th> {{song['time']}}</th>
+					<th> {{song['code']}} </th>
+  					</tr>
+			{% endfor %}
+			</table>
+		{% else %}
+			{% if song %}
+				<center><h2>Downloads: {{song['downloads']}}</h2></center>
+				<table style="width:100%">
+					<tr>
+    				<th>Time Downloaded</th>
+    				<th>Geolocation</th> 
+  					</tr>
+					{% for time in song['timelist'] %}
+					<tr>
+    					<th>{{time}}</th>
+						<th>{{song['loclist'][loop.index - 1]}}</th>
+					</tr>
+					{% endfor %}
+
+			</table>
+			{% else %}
+				<center> You never uploaded songs</center>
+			{% endif %}
+		{% endif %}
+		
 	</div>
 </body>
 </html>

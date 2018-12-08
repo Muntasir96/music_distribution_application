@@ -12,6 +12,8 @@ import qrcode
 import random
 import string
 from io import StringIO
+import datetime
+import geocoder
 
 
 app = Flask(__name__)
@@ -126,7 +128,8 @@ def upload():
             gencode = ''
             for i in range(n):
                 gencode = gencode + random.choice(clist)
-            songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename})
+            now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
+            songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[]})
             img = qrcode.make(gencode) # img is a png image
             imgname = 'static/image/' + str(gencode) + '.png'
             mscname = 'static/music/' + str(filename)
@@ -148,7 +151,19 @@ def downloadfile(code):
     song = {}
     for i in songlist.find({'code':code}):
         song = i
+    g = geocoder.ip('me')
+    here = "Latitude: " + str(g.latlng[0]) + " Longitude: " + str(g.latlng[1])
+    now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
+    timelist = song['timelist']
+    loclist = song['loclist']
+    timelist.append(now)
+    loclist.append(here)
     filename = song['filename']
+    downloads = song['downloads']
+    downloads = downloads + 1
+    songlist.find_one_and_update({'code':code}, {"$set": {'downloads':downloads}})
+    songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
+    songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
     
@@ -160,7 +175,30 @@ def user():
 
 @app.route('/stat')
 def stat():
-    return render_template("stat.html")
+    if 'username' not in session:
+        return render_template("home.html", message = "You must be logged in to your stats!")
+    else:
+        mysonglist = []
+        for i in songlist.find({'username':session['username']}):
+            mysonglist.append(i)
+        if(len(mysonglist) > 0):
+            return render_template("stat.html", list = mysonglist)
+        else:
+            return render_template("stat.html")
+
+@app.route('/stat/<code>')
+def statc(code):
+    if 'username' not in session:
+        return render_template("home.html", message = "You must be logged in to your stats!")
+    else:
+        song = {}
+        for i in songlist.find({'code':code}):
+            song = i
+        if song['username'] == session['username']:
+            return render_template("stat.html", song = song)
+        else:
+            return render_template("home.html", message = "Illegal Access!", username = session["username"])
+
 
 @app.route('/mongo', methods=['GET'])
 def mongo_test():
