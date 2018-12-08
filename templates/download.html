@@ -25,7 +25,7 @@
 
 {% if song %}
     <center>The song is : {{song['title']}} by {{song['artist']}}</center>
-    <center><a href='/downloadfile/{{song.filename}}'>CLICK TO DOWNLOAD</a></center>
+    <center><a href='/downloadfile/{{song.code}}'>CLICK TO DOWNLOAD</a></center>
     <br>
 {% endif %}
 

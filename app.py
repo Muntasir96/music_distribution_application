@@ -143,8 +143,12 @@ def upload():
             return render_template("upload.html", username = session["username"])
 
 
-@app.route('/downloadfile/<filename>')
-def downloadfile(filename):
+@app.route('/downloadfile/<code>')
+def downloadfile(code):
+    song = {}
+    for i in songlist.find({'code':code}):
+        song = i
+    filename = song['filename']
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
     
