@@ -25,18 +25,16 @@ db = Client["Library"]
 userlist = db["Users"]
 songlist = db["Songs"]
 
-
-
-currentuser = {"logged":False, "username":""}
+app.secret_key = "super secret key"
 
 
 
 @app.route('/')
 def home_page():
-    if currentuser['logged'] == False:
+    if 'username' not in session:
         return render_template("home.html")
     else:
-        return render_template("home.html", username = currentuser["username"])
+        return render_template("home.html", username = session["username"])
 
 
 @app.route('/download', methods = ['GET', 'POST'])
@@ -49,20 +47,20 @@ def download():
             found = True
             song = i
         if found == False:
-            if currentuser['logged'] == False:
+            if 'username' not in session:
                 return render_template("download.html", message = "This code is not valid")
             else:
-                return render_template("download.html", username = currentuser["username"], message = "This code is not valid")
+                return render_template("download.html", username = session["username"], message = "This code is not valid")
         else:
-            if currentuser['logged'] == False:
+            if 'username' not in session:
                 return render_template("download.html", song = song)
             else:
-                return render_template("download.html", username = currentuser["username"], song = song)        
+                return render_template("download.html", username = session["username"], song = song)        
     else:
-        if currentuser['logged'] == False:
+        if 'username' not in session:
             return render_template("download.html")
         else:
-            return render_template("download.html", username = currentuser["username"])
+            return render_template("download.html", username = session["username"])
 
 @app.route('/login', methods = ['GET', 'POST'])
 def login():
@@ -80,8 +78,7 @@ def login():
                 for i in userlist.find({'username':username, 'password':hashed_password.hexdigest()}):
                     match = True
                 if match == True:
-                    currentuser['logged'] = True
-                    currentuser['username'] = username
+                    session['username'] = username
                     return redirect("/")
                 else:
                     return render_template("login.html", message = "Username and password don't match!")
@@ -101,8 +98,7 @@ def register():
             for i in userlist.find({'username':username}):
                 newuser = False
             if newuser == True:
-                currentuser['logged'] = True
-                currentuser['username'] = username
+                session['username'] = username
                 userlist.insert({'username': username, 'password': hashed_password.hexdigest()})
                 return redirect("/")
             else:
@@ -112,8 +108,9 @@ def register():
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload():
+    print(session)
     if request.method == "POST":
-        if currentuser['logged'] == False:
+        if 'username' not in session:
             return render_template("upload.html", message = "You have to be logged in to upload!")
         else:
             title = request.form['title']
@@ -135,15 +132,15 @@ def upload():
             mscname = 'static/music/' + str(filename)
             img.save(imgname)
             music.save(mscname)
-            if currentuser['logged'] == False:
+            if 'username' not in session:
                 return render_template("upload.html", image = imgname)
             else:
-                return render_template("upload.html", username = currentuser["username"], image = imgname)
+                return render_template("upload.html", username = session["username"], image = imgname)
     else:
-        if currentuser['logged'] == False:
+        if 'username' not in session:
             return render_template("upload.html")
         else:
-            return render_template("upload.html", username = currentuser["username"])
+            return render_template("upload.html", username = session["username"])
 
 
 @app.route('/downloadfile/<filename>')
@@ -171,8 +168,7 @@ def mongo_test():
 
 @app.route('/logout')
 def logout_redirect():
-    currentuser['logged'] = False
-    currentuser['username'] = ""
+    session.pop('username', None)
     return redirect("/")
 
 
