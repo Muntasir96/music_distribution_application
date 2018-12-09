@@ -13,6 +13,11 @@ import string
 from io import StringIO
 import datetime
 import geocoder
+import json
+import requests
+
+ip = "192.168.1.213"
+port = 8080
 
 
 app = Flask(__name__)
@@ -25,10 +30,10 @@ Client = MongoClient("localhost:27017")
 db = Client["Library"]
 userlist = db["Users"]
 songlist = db["Songs"]
+downloadlist = db["Downloads"]
+
 
 app.secret_key = "super secret key"
-
-
 
 @app.route('/')
 def home_page():
@@ -72,7 +77,6 @@ def login():
                 exists = True
             if exists == True:
                 match = False 
-                print("pass is" + hashed_password.hexdigest())
                 for i in userlist.find({}):
                     pprint.pprint(i)
                 for i in userlist.find({'username':username, 'password':hashed_password.hexdigest()}):
@@ -94,7 +98,6 @@ def register():
             if request.form['password'] != request.form['password2']:
                 return render_template("register.html", message = "Passwords must match!")
             hashed_password = hashlib.sha1((request.form['password']).encode('utf-8'))
-            print(username + " " + hashed_password.hexdigest())
             newuser = True 
             for i in userlist.find({'username':username}):
                 newuser = False
@@ -109,7 +112,6 @@ def register():
 
 @app.route('/upload', methods = ['GET', 'POST'])
 def upload():
-    print(session)
     if request.method == "POST":
         if 'username' not in session:
             return render_template("upload.html", message = "You have to be logged in to upload!")
@@ -118,18 +120,17 @@ def upload():
             artist = request.form['artist']
             music = request.files['file']
             filename = request.files['file'].filename
-            # print(music)
-            # print(type(music))
-            # print(music.name)
-            # print(filename)
             clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
-            n = 4
+            n = 40
             gencode = ''
             for i in range(n):
                 gencode = gencode + random.choice(clist)
+            hashed_user = hashlib.sha1((session['username']).encode('utf-8'))
             now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
-            songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[]})
-            img = qrcode.make(gencode) # img is a png image
+            gencode = gencode + hashed_user.hexdigest()
+            songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[], 'dllist':[]})
+            durl = "http://" + ip + ":" + str(port) + "/downloadfile/" + gencode
+            img = qrcode.make(durl) # img is a png image
             imgname = 'static/image/' + str(gencode) + '.png'
             mscname = 'static/music/' + str(filename)
             img.save(imgname)
@@ -146,22 +147,22 @@ def upload():
 
 @app.route('/downloadfile/<code>')
 def downloadfile(code):
+    ip = ""
+    if request.headers.getlist("X-Forwarded-For"):
+       ip = request.headers.getlist("X-Forwarded-For")[0]
+    else:
+        ip = request.remote_addr
+    cpic = str(ip) + code
     song = {}
     for i in songlist.find({'code':code}):
         song = i
-    g = geocoder.ip('me')
-    here = "Latitude: " + str(g.latlng[0]) + " Longitude: " + str(g.latlng[1])
+    gurl = "http://api.ipstack.com/" + str(ip) + "?access_key=1e8045f7688859a698512a0abf267f5b"
+    response = requests.get(gurl)    
+    json_data = json.loads(response.text)
+    here = str(json_data["city"])
     now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
-    timelist = song['timelist']
-    loclist = song['loclist']
-    timelist.append(now)
-    loclist.append(here)
+    downloadlist.update_one({"cpic":cpic} , {"$set": {"code":code, "cpic":cpic, "time":now, "loc":here}} , upsert =True)
     filename = song['filename']
-    downloads = song['downloads']
-    downloads = downloads + 1
-    songlist.find_one_and_update({'code':code}, {"$set": {'downloads':downloads}})
-    songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
-    songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
 
@@ -175,6 +176,21 @@ def stat():
         return render_template("home.html", message = "You must be logged in to your stats!")
     else:
         mysonglist = []
+        for i in songlist.find({'username':session['username']}):
+            song = i
+            code = song['code']
+            timelist = song['timelist']
+            loclist = song['loclist']
+            dllist = song['dllist']
+            for j in downloadlist.find({'code':code}):
+                if j['cpic'] not in dllist:
+                    timelist.append(j['time'])
+                    loclist.append(j['loc'])
+                    dllist.append(j['cpic'])
+            songlist.find_one_and_update({'code':code}, {"$set": {'dllist':dllist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'downloads':len(dllist)}})
         for i in songlist.find({'username':session['username']}):
             mysonglist.append(i)
         if(len(mysonglist) > 0):
@@ -191,18 +207,23 @@ def statc(code):
         for i in songlist.find({'code':code}):
             song = i
         if song['username'] == session['username']:
+            timelist = song['timelist']
+            loclist = song['loclist']
+            dllist = song['dllist']
+            for j in downloadlist.find({'code':code}):
+                if j['cpic'] not in dllist:
+                    timelist.append(j['time'])
+                    loclist.append(j['loc'])
+                    dllist.append(j['cpic'])
+            songlist.find_one_and_update({'code':code}, {"$set": {'dllist':dllist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
+            songlist.find_one_and_update({'code':code}, {"$set": {'downloads':len(dllist)}})
+            for i in songlist.find({'code':code}):
+                song = i
             return render_template("stat.html", song = song)
         else:
             return render_template("home.html", message = "Illegal Access!", username = session["username"])
-
-# @app.route('/mongo', methods=['GET'])
-# def mongo_test():
-#     output = []
-#     for f in mongo.db.song.find():
-#         f.pop('_id')
-#         output.append(f)
-#     mongo.db.users.insert({'hi':'hi'})
-#     return jsonify({'result' : output})
 
 @app.route('/logout')
 def logout_redirect():
@@ -211,4 +232,4 @@ def logout_redirect():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host=ip, port=port, debug=True)

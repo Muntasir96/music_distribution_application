@@ -1,8 +1,7 @@
-import geocoder
+import json
+import requests
 
-# pip3 install geocoder
-# python3 geo.py
-
-g = geocoder.ip('me')
-x = "Latitude: " + str(g.latlng[0]) + " Longitutde: " + str(g.latlng[1])
-print(x)
+response = requests.get("http://api.ipstack.com/67.243.240.102?access_key=1e8045f7688859a698512a0abf267f5b")
+json_data = json.loads(response.text)
+print("hi")
+print(json_data["city"])
