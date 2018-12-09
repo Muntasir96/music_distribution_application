@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html><body style = "margin: 0">
 {% if username %}
 		<div style = "background-color:#CBDCFC; width: 100%; padding-bottom: 3vh">
@@ -11,23 +11,14 @@
 		<div style="float: right"> <a href="/register">REGISTER</a> | <a href="/login">LOG IN</a></div>	
 		</div>
 {% endif %}
-  <div style = "background-color:#EB9A84; width: 100%; padding-bottom: 100vh">
-    <br>
-    <center><p style = "font-size:50px"><b>BEATS FROM THE STREETS!</b></p></center>
+  
+   <div style = "background-color:#EB9A84; width: 100%; padding-bottom: 100vh">
+<br>      
 
-{% if message %}
-<div style="background-color: red; width: 100%; padding-bottom: 2.vh;">
-<div class="error"><center>{{ message }}</center></div>
-</div>
-{% endif %}
 
-{% if image %}
+
 	<br><br>
-    <center><img src={{image}} alt="QR Code" width="500" height="500" ></center>
-{% else %}
-<center><h2>UPLOAD SONG</h2></center>
-    <center><p style = "font-size:30px"> <a href="/upload">UPLOAD</a>  </p></center>
-{% endif %}
+    <center><img src= {{image}} alt="QR Code" width="500" height="500" ></center>
 
-		</div>
-</body> </html>
+
+</div></body></html>

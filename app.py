@@ -15,8 +15,11 @@ import datetime
 import geocoder
 import json
 import requests
+from PIL import Image
 
-ip = "192.168.1.213"
+
+
+ip = "0.0.0.0"
 port = 8080
 
 
@@ -41,6 +44,17 @@ def home_page():
         return render_template("home.html")
     else:
         return render_template("home.html", username = session["username"])
+
+@app.route('/<code>')
+def imagec(code):
+    song = {}
+    for i in songlist.find({'code':code}):
+        song = i
+    print(song)
+    imgname = 'static/image/' + str(song['code']) + '.png'
+    return render_template("image.html", username = session["username"], image = imgname)
+
+
 
 @app.route('/download', methods = ['GET', 'POST'])
 def download():
@@ -159,7 +173,7 @@ def downloadfile(code):
     gurl = "http://api.ipstack.com/" + str(ip) + "?access_key=1e8045f7688859a698512a0abf267f5b"
     response = requests.get(gurl)    
     json_data = json.loads(response.text)
-    here = str(json_data["city"])
+    here = str(json_data["region_name"])
     now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
     downloadlist.update_one({"cpic":cpic} , {"$set": {"code":code, "cpic":cpic, "time":now, "loc":here}} , upsert =True)
     filename = song['filename']
@@ -224,6 +238,15 @@ def statc(code):
             return render_template("stat.html", song = song)
         else:
             return render_template("home.html", message = "Illegal Access!", username = session["username"])
+
+
+
+
+    
+
+
+    
+
 
 @app.route('/logout')
 def logout_redirect():

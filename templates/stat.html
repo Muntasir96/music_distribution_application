@@ -30,7 +30,7 @@
     				<th>{{song['artist']}}</th> 
     				<th> <a href="/stat/{{song['code']}}">{{song['downloads']}}</a> </th>
 					<th> {{song['time']}}</th>
-					<th> {{song['code']}} </th>
+					<th> <a href="/{{song['code']}}">{{song['code']}}</a> </th>
   					</tr>
 			{% endfor %}
 			</table>
