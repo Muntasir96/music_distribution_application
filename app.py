@@ -19,7 +19,7 @@ from PIL import Image
 
 
 
-ip = "192.168.1.213"
+ip = "0.0.0.0"
 port = 8080
 
 
@@ -143,8 +143,8 @@ def upload():
             now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
             gencode = gencode + hashed_user.hexdigest()
             songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[], 'dllist':[]})
-            #host = "104.196.173.11"
-            host = ip
+            host = "104.196.173.11"
+            #host = ip
             durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
             img = qrcode.make(durl) # img is a png image
             imgname = 'static/image/' + str(gencode) + '.png'
