@@ -143,7 +143,12 @@ def upload():
             now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
             gencode = gencode + hashed_user.hexdigest()
             songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[], 'dllist':[]})
+<<<<<<< HEAD
             host = "104.196.173.11"
+=======
+            host = "104.196.26.6"
+            #host = ip
+>>>>>>> aa005448a2ecc74bc1dbe1f378a7a0107d9161a6
             durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
             img = qrcode.make(durl) # img is a png image
             imgname = 'static/image/' + str(gencode) + '.png'
@@ -160,15 +165,27 @@ def upload():
         else:
             return render_template("upload.html", username = session["username"])
 
+
+
+
+
 @app.route('/downloadfile/<code>')
 def downloadfile(code):
+    clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
+    gencode = ''
+    n = 50   
+    for i in range(n):
+        gencode = gencode + random.choice(clist)
+    if 'unique' not in session:
+        session['unique'] = gencode
     ip = ""
     if request.headers.getlist("X-Forwarded-For"):
        ip = request.headers.getlist("X-Forwarded-For")[0]
     else:
         ip = request.remote_addr
-    cpic = str(ip) + code
+    cpic = str(ip) + session['unique'] + code # get the client ip code
     song = {}
+    print(session)
     for i in songlist.find({'code':code}):
         song = i
     gurl = "http://api.ipstack.com/" + str(ip) + "?access_key=1e8045f7688859a698512a0abf267f5b"
@@ -176,7 +193,7 @@ def downloadfile(code):
     json_data = json.loads(response.text)
     here = str(json_data["region_name"])
     now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
-    downloadlist.update_one({"cpic":cpic} , {"$set": {"code":code, "cpic":cpic, "time":now, "loc":here}} , upsert =True)
+    downloadlist.update_one({"cpic":cpic} , {"$set": {"code":code, "cpic":cpic, "time":now, "loc":here}} , upsert =True) # avoid duplicates
     filename = song['filename']
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
