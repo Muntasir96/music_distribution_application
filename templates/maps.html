@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title> Beats from the streets </title>
+</head>
+<body style="margin: 0">
+	<div style="background-color: #CBDCFC; width: 100% padding-bottom: 3vh" id="header">
+		<div style="float: left">
+			<a href="/stat">Stats</a>
+			<a href="/"> HOME </a>
+		</div>
+	</div>
+	<div style="background-color: #EB9A84; width: 100%; padding-bottom: 100vh" id="map">
+		<br>
+		<center><h1>Map Data</h1></center>
+		<br>
+		{% if song %}
+			<center><h2>{{song['title']}}</h2></center>
+			<center><h2>Downloads: {{song['downloads']}}</h2></center>
+		{% else %}
+			<center>You never uploaded any songs</center>
+		{% endif %}
+	</div>
+
+</body>
+</html>
