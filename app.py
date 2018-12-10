@@ -183,7 +183,7 @@ def downloadfile(code):
        ip = request.headers.getlist("X-Forwarded-For")[0]
     else:
         ip = request.remote_addr
-    cpic = str(ip) + session['unique'] + code # get the client ip code
+    cpic = session['unique'] + code # get the client ip code
     song = {}
     print(session)
     for i in songlist.find({'code':code}):
