@@ -143,8 +143,12 @@ def upload():
             now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
             gencode = gencode + hashed_user.hexdigest()
             songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[], 'dllist':[]})
+<<<<<<< HEAD
             host = "104.196.173.11"
+=======
+            host = "104.196.26.6"
             #host = ip
+>>>>>>> aa005448a2ecc74bc1dbe1f378a7a0107d9161a6
             durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
             img = qrcode.make(durl) # img is a png image
             imgname = 'static/image/' + str(gencode) + '.png'
