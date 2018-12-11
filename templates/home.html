@@ -21,9 +21,14 @@
 </div>
 {% endif %}
 
-{% if image %}
-	<br><br>
-    <center><img src={{image}} alt="QR Code" width="500" height="500" ></center>
+{% if imagelist %}
+		{% for image in imagelist %}
+		
+		<br><br>
+		<center> download </center>
+    	<center><img src={{image}} alt="QR Code" width="500" height="500" ></center>
+		<br><br>
+{% endfor %}
 {% else %}
     <center><p style = "font-size:30px"> <a href="/upload">UPLOAD</a>  </p></center>
 {% endif %}

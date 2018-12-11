@@ -20,6 +20,7 @@ from PIL import Image
 
 
 ip = "0.0.0.0"
+ip = "10.16.35.99"
 port = 8080
 
 
@@ -47,12 +48,31 @@ def home_page():
 
 @app.route('/<code>')
 def imagec(code):
-    song = {}
-    for i in songlist.find({'code':code}):
-        song = i
-    print(song)
-    imgname = 'static/image/' + str(song['code']) + '.png'
-    return render_template("image.html", username = session["username"], image = imgname)
+    if(code == "favicon.ico"):
+        return redirect('/')
+    else:
+        song = {}
+        for i in songlist.find({'code':code}):
+            song = i
+        #host = "104.196.173.11"
+        #host = "104.196.26.6"
+        host = "localhost"
+        host = "10.16.35.99"
+        imagelist = []
+        clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
+        for i in range(10):
+            n = 30
+            gencode = ''
+            for i in range(n):
+                gencode = gencode + random.choice(clist)
+            gencode = gencode + code
+            durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
+            img = qrcode.make(durl) # img is a png image
+            imgname = 'static/image/' + str(gencode) + '.png'
+            img.save(imgname)
+            imagelist.append(imgname)
+            downloadlist.insert({"scode":code, "dcode":gencode, "time":"None", "loc":"None", "scanned":False}) # avoid duplicates
+        return render_template("home.html", username = session["username"], imagelist = imagelist)
 
 
 
@@ -135,7 +155,7 @@ def upload():
             music = request.files['file']
             filename = request.files['file'].filename
             clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
-            n = 40
+            n = 20
             gencode = ''
             for i in range(n):
                 gencode = gencode + random.choice(clist)
@@ -143,22 +163,10 @@ def upload():
             now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
             gencode = gencode + hashed_user.hexdigest()
             songlist.insert({'title': title, 'artist':artist, 'code':gencode, 'filename': filename, 'username': session['username'], 'downloads': 0, 'time':now, 'timelist':[], 'loclist':[], 'dllist':[]})
-<<<<<<< HEAD
-            host = "104.196.173.11"
-=======
-            host = "104.196.26.6"
-            #host = ip
->>>>>>> aa005448a2ecc74bc1dbe1f378a7a0107d9161a6
-            durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
-            img = qrcode.make(durl) # img is a png image
-            imgname = 'static/image/' + str(gencode) + '.png'
             mscname = 'static/music/' + str(filename)
-            img.save(imgname)
             music.save(mscname)
-            if 'username' not in session:
-                return render_template("upload.html", image = imgname)
-            else:
-                return render_template("upload.html", username = session["username"], image = imgname)
+            rpath = "/" + str(gencode)
+            return redirect(rpath)
     else:
         if 'username' not in session:
             return render_template("upload.html")
@@ -185,15 +193,17 @@ def downloadfile(code):
         ip = request.remote_addr
     cpic = session['unique'] + code # get the client ip code
     song = {}
-    print(session)
-    for i in songlist.find({'code':code}):
+    scode = ""
+    for i in downloadlist.find({'dcode':code}):
+        scode = i['scode']
+    for i in songlist.find({'code':scode}):
         song = i
     gurl = "http://api.ipstack.com/" + str(ip) + "?access_key=1e8045f7688859a698512a0abf267f5b"
     response = requests.get(gurl)    
     json_data = json.loads(response.text)
     here = str(json_data["region_name"])
     now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
-    downloadlist.update_one({"cpic":cpic} , {"$set": {"code":code, "cpic":cpic, "time":now, "loc":here}} , upsert =True) # avoid duplicates
+    downloadlist.update_one({"dcode":code} , {"$set": {"time":now, "loc":here, "scanned":True}}) # avoid duplicates
     filename = song['filename']
     path = "static/music/" + filename
     return send_file(path, attachment_filename=filename, as_attachment=True)
@@ -214,12 +224,11 @@ def stat():
             timelist = song['timelist']
             loclist = song['loclist']
             dllist = song['dllist']
-            for j in downloadlist.find({'code':code}):
-                if j['cpic'] not in dllist:
-                    timelist.append(j['time'])
-                    loclist.append(j['loc'])
-                    dllist.append(j['cpic'])
-            songlist.find_one_and_update({'code':code}, {"$set": {'dllist':dllist}})
+            for j in downloadlist.find({'scode':code}):
+                if j['scanned'] == True and j['dcode'] not in dllist:
+                    #timelist.append(j['time'])
+                    #loclist.append(j['loc'])
+                    dllist.append(j['dcode'])
             songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
             songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})
             songlist.find_one_and_update({'code':code}, {"$set": {'downloads':len(dllist)}})
@@ -242,11 +251,11 @@ def statc(code):
             timelist = song['timelist']
             loclist = song['loclist']
             dllist = song['dllist']
-            for j in downloadlist.find({'code':code}):
-                if j['cpic'] not in dllist:
+            for j in downloadlist.find({'scode':code}):
+                if j['scanned'] == True and j['dcode'] not in dllist:
                     timelist.append(j['time'])
                     loclist.append(j['loc'])
-                    dllist.append(j['cpic'])
+                    dllist.append(j['dcode'])
             songlist.find_one_and_update({'code':code}, {"$set": {'dllist':dllist}})
             songlist.find_one_and_update({'code':code}, {"$set": {'timelist':timelist}})
             songlist.find_one_and_update({'code':code}, {"$set": {'loclist':loclist}})

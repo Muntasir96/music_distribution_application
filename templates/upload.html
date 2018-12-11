@@ -22,9 +22,12 @@
 </div>
 {% endif %}
 
-{% if image %}
+{% if imagelist %}
+{% for image in imagelist%}
 	<br><br>
     <center><img src={{image}} alt="QR Code" width="500" height="500" ></center>
+	<br><br>
+{% endfor%}
 {% else %}
 <center><h2>UPLOAD SONG</h2></center>
      <center>Step 1: Log in</center>
