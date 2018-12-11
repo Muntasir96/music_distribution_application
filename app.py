@@ -20,7 +20,7 @@ from PIL import Image
 
 
 ip = "0.0.0.0"
-ip = "10.16.35.99"
+#ip = "10.16.35.99"
 port = 8080
 
 
@@ -56,7 +56,8 @@ def imagec(code):
             song = i
         #host = "104.196.173.11"
         #host = "104.196.26.6"
-        host = "localhost"
+        #host = "localhost"
+        # CHANGE THIS HOST
         host = "10.16.35.99"
         imagelist = []
         clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
