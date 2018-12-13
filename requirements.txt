@@ -6,3 +6,4 @@ config
 flask_pymongo
 pymongo
 dnspython
+boto3
