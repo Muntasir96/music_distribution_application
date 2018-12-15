@@ -10,8 +10,6 @@ import ssl
 import qrcode
 import random
 import string
-#from io import StringIO was not working so imported StringIO
-import io
 import sys
 import datetime
 import geocoder
@@ -24,7 +22,6 @@ import time
 import os
 
 ip = "0.0.0.0"
-ip = "10.16.35.99"
 # MASAKI CHANGE THIS ^^
 port = 8080
 
@@ -35,6 +32,8 @@ app.config['MONGO_URI'] = 'mongodb://mongodb:27017/'
 mongo = PyMongo(app)
 
 
+delinc = 0
+dellim = 10 # local static directory will refresh after 11 uploads (1-10 + 0 = 11)
 
 Client = MongoClient("localhost:27017")
 db = Client["Library"]
@@ -57,6 +56,8 @@ def imagec(code):
 	if(code == "favicon.ico"):
 		return redirect('/')
 	else:
+		global delinc
+		global dellim
 		song = {}
 		realurl = False
 		for i in songlist.find({'code':code}):
@@ -64,12 +65,20 @@ def imagec(code):
 			realurl = True
 		if(realurl == False):
 			return "URL is invalid!"
-		mydir = 'static/'
-		filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
-		for f in filelist:
-			os.remove(os.path.join(mydir, f))
+		if 'username' not in session:
+			return render_template("home.html", message = "Illegal Access")
+		if song['username'] != session['username']:
+			return render_template("home.html", message = "Illegal Access", username = session['username'])
+		if delinc >= dellim:
+			mydir = 'static/'
+			filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
+			for f in filelist:
+				os.remove(os.path.join(mydir, f))
+			delinc = 0
+		else:
+			delinc = delinc + 1
 		host = 'localhost'
-		host = "10.16.35.99"
+		host = "35.185.11.224"
 		# MASAKI CHANGE THIS ^^
 		imagelist = []
 		clist = string.ascii_lowercase + string.ascii_uppercase + string.digits
@@ -143,6 +152,8 @@ def register():
 			username = request.form['username']
 			if request.form['password'] != request.form['password2']:
 				return render_template("register.html", message = "Passwords must match!")
+			if len(username) < 5 or len(request.form['password']) < 5:
+				return render_template("register.html", message = "Username AND password must each be at least 5 characters long")
 			hashed_password = hashlib.sha1((request.form['password']).encode('utf-8'))
 			newuser = True 
 			for i in userlist.find({'username':username}):
@@ -167,6 +178,8 @@ def upload():
 			artist = request.form['artist']
 			music = request.files['file']
 			filename = request.files['file'].filename
+			if(len(filename) == 0):
+				return render_template("upload.html", message = "Please upload a file!")
 			clist = string.ascii_lowercase + string.ascii_uppercase + string.digits
 			n = 20
 			gencode = ''
@@ -190,11 +203,11 @@ def upload():
 			return render_template('upload.html', username=session['username'])
 
 
-
-window = 30
+window = 120
 
 @app.route('/downloadfile/<code>')
 def downloadfile(code):
+	global window
 	clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
 	gencode = ''
 	n = 50   
@@ -293,11 +306,6 @@ def statc(code):
 			return render_template("stat.html", song = song)
 		else:
 			return render_template("home.html", message = "Illegal Access!", username = session["username"])
-
-
-
-
-	
 
 
 	
