@@ -24,8 +24,8 @@ import time
 import os
 
 ip = "0.0.0.0"
-#ip = "10.16.35.99"
 ip = "10.16.35.99"
+# MASAKI CHANGE THIS ^^
 port = 8080
 
 
@@ -64,17 +64,13 @@ def imagec(code):
 			realurl = True
 		if(realurl == False):
 			return "URL is invalid!"
-		#host = "104.196.173.11"
-		#host = "104.196.26.6"
-		#host = "localhost"
-		# CHANGE THIS HOST
-		#host = "10.16.35.99"
 		mydir = 'static/'
 		filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
 		for f in filelist:
 			os.remove(os.path.join(mydir, f))
 		host = 'localhost'
 		host = "10.16.35.99"
+		# MASAKI CHANGE THIS ^^
 		imagelist = []
 		clist = string.ascii_lowercase + string.ascii_uppercase + string.digits
 		s3 = boto3.client('s3', config=Config(signature_version='s3v4')) 
