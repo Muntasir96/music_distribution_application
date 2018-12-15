@@ -11,7 +11,8 @@ import qrcode
 import random
 import string
 #from io import StringIO was not working so imported StringIO
-import StringIO
+import io
+import sys
 import datetime
 import geocoder
 import json
@@ -19,10 +20,12 @@ import requests
 from PIL import Image
 import boto3
 from botocore.client import Config
-
+import time
+import os
 
 ip = "0.0.0.0"
 #ip = "10.16.35.99"
+ip = "10.16.35.99"
 port = 8080
 
 
@@ -54,44 +57,39 @@ def imagec(code):
 	if(code == "favicon.ico"):
 		return redirect('/')
 	else:
-		s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
 		song = {}
+		realurl = False
 		for i in songlist.find({'code':code}):
 			song = i
+			realurl = True
+		if(realurl == False):
+			return "URL is invalid!"
 		#host = "104.196.173.11"
 		#host = "104.196.26.6"
 		#host = "localhost"
 		# CHANGE THIS HOST
 		#host = "10.16.35.99"
+		mydir = 'static/'
+		filelist = [ f for f in os.listdir(mydir) if f.endswith(".png") ]
+		for f in filelist:
+			os.remove(os.path.join(mydir, f))
 		host = 'localhost'
+		host = "10.16.35.99"
 		imagelist = []
-		clist = string.ascii_lowercase + string.ascii_uppercase + string.digits 
+		clist = string.ascii_lowercase + string.ascii_uppercase + string.digits
+		s3 = boto3.client('s3', config=Config(signature_version='s3v4')) 
 		for i in range(10):
-			thisKey = code + ':' + song['filename'] 
-			durl = s3.generate_presigned_url(ClientMethod='get_object', Params={
-				'Bucket': 'lswafinal-songdb',
-				'Key': thisKey
-				},
-				ExpiresIn = 43200
-			)
-			response = requests.get(durl)
-			print(response.url)
 			n = 30
 			gencode = ''
 			for i in range(n):
 				gencode = gencode + random.choice(clist)
 			gencode = gencode + code
-			img = qrcode.make(response.url)
-			imgname = 'static/image/' + str(gencode) + '.png'
-			buffer = StringIO.StringIO()
-			img.save(buffer, 'PNG')
-			image = buffer.getvalue()
+			durl = "http://" + host + ":" + str(port) + "/downloadfile/" + gencode
+			img = qrcode.make(durl)
+			imgname = 'static/' + str(gencode) + '.png'
 			img.save(imgname)
-			toBucket = boto3.resource('s3')
-			imgKey = str(gencode) + '.png'
-			toBucket.Bucket('lswafinal-qr').put_object(Key=imgKey, Body=image)
 			imagelist.append(imgname)
-			downloadlist.insert({'scode':code, 'dcode':gencode, 'time':'None', 'loc':'None', 'scanned':False})
+			downloadlist.insert({"scode":code, "dcode":gencode, "time":"None", "loc":"None", "scanned":False, "epoch":-1}) # avoid duplicates
 		return render_template('home.html', username=session['username'], imagelist=imagelist)
 
 @app.route('/download', methods = ['GET', 'POST'])
@@ -181,10 +179,12 @@ def upload():
 			hashed_user = hashlib.sha1((session['username']).encode('utf-8'))
 			now = datetime.datetime.now().strftime("%a, %d %B %Y %I: %M: %S %p")
 			gencode = gencode + hashed_user.hexdigest()
-			songlist.insert({'title':title, "artist":artist, "code":gencode, "filename":filename, "username":session["username"], 'downloads':0, "time":now, 'timelist':[], 'loclist':[], 'dllist':[]})
-			s3.Bucket('lswafinal-songdb').put_object(Key=(gencode+':'+filename), Body=music)
-			mscname = 'static/music/' + str(filename)
-			music.save(mscname)
+			s3.Bucket('lswafinal-songdb').put_object(Key=(gencode + filename), Body=music, ContentDisposition=("attachment; filename="+filename))
+			ms3 = boto3.client('s3', config=Config(signature_version='s3v4'))
+			plink = ms3.generate_presigned_url(ClientMethod='get_object', Params={'Bucket': 'lswafinal-songdb','Key': (gencode + filename)})
+			response = requests.get(plink)
+			s3link = response.url
+			songlist.insert({'title':title, "artist":artist, "code":gencode, "filename":filename, "username":session["username"], 'downloads':0, "time":now, 'timelist':[], 'loclist':[], 'dllist':[], 's3link':s3link})
 			rpath = '/' + str(gencode)
 			return redirect(rpath)
 	else:
@@ -195,7 +195,7 @@ def upload():
 
 
 
-
+window = 30
 
 @app.route('/downloadfile/<code>')
 def downloadfile(code):
@@ -214,19 +214,31 @@ def downloadfile(code):
 	cpic = session['unique'] + code # get the client ip code
 	song = {}
 	scode = ""
+	scanned = False
 	for i in downloadlist.find({'dcode':code}):
 		scode = i['scode']
 	for i in songlist.find({'code':scode}):
 		song = i
+	#ip = "67.243.240.102"
 	gurl = "http://api.ipstack.com/" + str(ip) + "?access_key=1e8045f7688859a698512a0abf267f5b"
 	response = requests.get(gurl)    
 	json_data = json.loads(response.text)
-	here = str(json_data["region_name"])
+	here = "Country: " +  str(json_data["country_name"]) + " | Region: " + str(json_data["region_name"]) + " | City: " +str(json_data["city"]) + " | Latitude: " +str(json_data["latitude"]) + " | Longitude: " +str(json_data["longitude"])
 	now = datetime.datetime.now().strftime("%a, %d %B %Y %I:%M:%S %p")
-	downloadlist.update_one({"dcode":code} , {"$set": {"time":now, "loc":here, "scanned":True}}) # avoid duplicates
-	filename = song['filename']
-	path = "static/music/" + filename
-	return send_file(path, attachment_filename=filename, as_attachment=True)
+	#now = request.args.get("time")
+	epoch = -1
+	for i in downloadlist.find({'dcode':code}):
+	 scanned = i['scanned']
+	 epoch = i['epoch']
+	if scanned == False:
+		downloadlist.update_one({"dcode":code} , {"$set": {"time":now, "loc":here, "epoch":int(time.time()), "scanned":True}}) # avoid duplicates
+	if epoch == -1 or (epoch + window) > int(time.time()):
+			s3 = boto3.client('s3', config=Config(signature_version='s3v4'))
+			file = s3.get_object(Bucket='lswafinal-songdb', Key=scode+song['filename'])
+			return Response(file['Body'].read(),mimetype='audio/mpeg',headers={"Content-Disposition": "attachment;filename="+song['filename']})
+			#return redirect(song['s3link'])
+	else:
+    		return "This QR HAS EXPIRED!"
 
 @app.route('/user')
 def user():
